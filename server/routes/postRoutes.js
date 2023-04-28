@@ -9,7 +9,7 @@ dotenv.config();
 const router = express.Router();
 
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    cloud_name: process.env.CLOUDINARY_CLOUD,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
@@ -25,9 +25,11 @@ router.route('/').get(async (req, res) => {
 
 router.route('/').post(async (req, res) => {
     try {
+        console.log("postroute");
         const { name, prompt, photo } = req.body;
+        console.log("uploadeding");
         const photoUrl = await cloudinary.uploader.upload(photo);
-
+console.log("uploaded");
         const newPost = await Post.create({
             name,
             prompt,
