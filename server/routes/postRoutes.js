@@ -29,34 +29,27 @@ router.route('/').post(async (req, res) => {
     console.log("Req ",req)
     try {
         const parser = new datauri();
-        const uploadToCloudinary = (buffer) => {
-            return new Promise((resolve, reject) => {
-                cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
-                    if (error) {
-                      reject(error);
-                    } else {
-                      resolve(result);
-                    }
-                }).end(buffer);
-            });
-        }
-
+        
         console.log("postroute");
         const { name, prompt, photo } = req.body;
         const buffer = Buffer.from(photo.replace(/^data:image\/\w+;base64,/, ''), 'base64');
 
         console.log("uploadeding");
-        
         // const photoUrl = await cloudinary.uploader.upload(photo);
-        const cloudinaryResult = await uploadToCloudinary(buffer);
-
-        const newPost = await Post.create({
-            name,
-            prompt,
-            photo: cloudinaryResult.secure_url,
-        });
-
-        res.status(200).json({ success11: true, data: newPost });
+        cloudinary.uploader.upload_stream((error, result) => {
+            if (error) {
+              console.log(error);
+              res.status(500).json({ success: false, message: 'Unable to upload image to Cloudinary' });
+            } else {
+              console.log(result.secure_url);
+              const newPost = await Post.create({
+                name,
+                prompt,
+                photo: result.secure_url,
+              });
+              res.status(200).json({ success: true, data: newPost });
+            }
+          }).end(buffer);
     } catch (err) {
         res.status(500).json({ success: false, message: 'Unable to create a post, please try again' });
     }
