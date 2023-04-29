@@ -29,26 +29,31 @@ router.route('/').post(async (req, res) => {
     console.log("Req ",req)
     try {
         const parser = new datauri();
-        
+        const uploadToCloudinary = (buffer) => {
+            return new Promise((resolve, reject) => {
+                cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error) {
+                      reject(error);
+                    } else {
+                      resolve(result);
+                    }
+                }).end(buffer);
+            });
+        }
 
         console.log("postroute");
         const { name, prompt, photo } = req.body;
         const buffer = Buffer.from(photo.replace(/^data:image\/\w+;base64,/, ''), 'base64');
 
         console.log("uploadeding");
+        
         // const photoUrl = await cloudinary.uploader.upload(photo);
-        cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
-            if (error) {
-              console.log(error);
-            } else {
-              console.log(result.secure_url);
-            }
-          }).end(buffer);
-console.log("uploaded");
+        const cloudinaryResult = await uploadToCloudinary(buffer);
+
         const newPost = await Post.create({
             name,
             prompt,
-            photo: photoUrl.url,
+            photo: cloudinaryResult.secure_url,
         });
 
         res.status(200).json({ success11: true, data: newPost });
