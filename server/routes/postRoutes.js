@@ -33,17 +33,17 @@ router.route('/').post(async (req, res) => {
 
         console.log("postroute");
         const { name, prompt, photo } = req.body;
-        const buffer = parser.format('.jpg', photo).content;
+        const buffer = Buffer.from(photo.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+
         console.log("uploadeding");
         // const photoUrl = await cloudinary.uploader.upload(photo);
-        const uploadStream = cloudinary.uploader.upload_stream({ folder: 'my_folder' }, function(err, result) {
-            if (err) {
-              console.log(err);
+        cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+            if (error) {
+              console.log(error);
             } else {
-              console.log(result);
+              console.log(result.secure_url);
             }
-          });
-          streamifier.createReadStream(buffer).pipe(uploadStream);
+          }).end(buffer);
 console.log("uploaded");
         const newPost = await Post.create({
             name,
