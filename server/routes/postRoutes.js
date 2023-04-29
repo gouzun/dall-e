@@ -1,6 +1,8 @@
 import express from 'express';
 import * as dotenv from 'dotenv';
 import { v2 as cloudinary } from 'cloudinary';
+import datauri from 'datauri/parser.js';
+import streamifier from 'streamifier';
 
 import Post from '../mongodb/model/post.js';
 
@@ -24,11 +26,24 @@ router.route('/').get(async (req, res) => {
 });
 
 router.route('/').post(async (req, res) => {
+    console.log("Req ",req)
     try {
+        const parser = new datauri();
+        
+
         console.log("postroute");
         const { name, prompt, photo } = req.body;
+        const buffer = parser.format('.jpg', photo).content;
         console.log("uploadeding");
-        const photoUrl = await cloudinary.uploader.upload(photo);
+        // const photoUrl = await cloudinary.uploader.upload(photo);
+        const uploadStream = cloudinary.uploader.upload_stream({ folder: 'my_folder' }, function(err, result) {
+            if (err) {
+              console.log(err);
+            } else {
+              console.log(result);
+            }
+          });
+          streamifier.createReadStream(buffer).pipe(uploadStream);
 console.log("uploaded");
         const newPost = await Post.create({
             name,
@@ -36,7 +51,7 @@ console.log("uploaded");
             photo: photoUrl.url,
         });
 
-        res.status(200).json({ success: true, data: newPost });
+        res.status(200).json({ success11: true, data: newPost });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Unable to create a post, please try again' });
     }
