@@ -42,14 +42,16 @@ router.route('/').post(async (req, res) => {
               res.status(500).json({ success: false, message: 'Unable to upload image to Cloudinary' });
             } else {
               console.log(result.secure_url);
-              const newPost = await Post.create({
-                name,
-                prompt,
-                photo: result.secure_url,
-              });
+              
               res.status(200).json({ success: true, data: newPost });
             }
+            
           }).end(buffer);
+          const newPost = await Post.create({
+            name,
+            prompt,
+            photo: result.secure_url,
+          });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Unable to create a post, please try again' });
     }
