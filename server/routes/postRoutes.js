@@ -52,6 +52,7 @@ router.route('/').post(async (req, res) => {
             prompt,
             photo: result.secure_url,
           });
+          console.log("done uploadeding");
     } catch (err) {
         res.status(500).json({ success: false, message: 'Unable to create a post, please try again' });
     }
